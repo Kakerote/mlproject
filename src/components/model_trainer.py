@@ -1,4 +1,7 @@
-import os
+import os, warnings
+os.environ["LOKY_MAX_CPU_COUNT"] = "8"
+warnings.filterwarnings("ignore", category=UserWarning, module="joblib")
+
 import sys
 from dataclasses import dataclass
 
@@ -47,9 +50,43 @@ class ModelTrainer:
                 "CatBoosting Regressor": CatBoostRegressor(verbose=False),
                 "AdaBoost Regressor": AdaBoostRegressor(),
             }
+            params = {
+            "Decision Tree": {
+                'criterion': ['squared_error', 'friedman_mse', 'absolute_error', 'poisson'],
+            },
+            "Random Forest": {
+                'n_estimators': [8, 16, 32, 64, 128, 256]
+            },
+            "Gradient Boosting": {
+                'learning_rate': [0.1, 0.01, 0.05, 0.001],
+                'subsample': [0.6, 0.7, 0.8, 0.9],
+                'n_estimators': [8, 16, 32, 64, 128, 256]
+            },
+            "Linear Regression": {},
+            "K-Neighbors Regressor": {          # ✅ added missing key
+                'n_neighbors': [3, 5, 7, 9],
+                'weights': ['uniform', 'distance']
+            },
+            "XGB Regressor": {
+                'learning_rate': [0.1, 0.01, 0.05],
+                'n_estimators': [50, 100, 200]
+            },
+            "CatBoosting Regressor": {
+                'depth': [6, 8, 10],
+                'learning_rate': [0.01, 0.05, 0.1],
+                'iterations': [30, 50, 100]
+            },
+            "AdaBoost Regressor": {
+                'learning_rate': [0.1, 0.01, 0.05],
+                'n_estimators': [8, 16, 32, 64, 128, 256]
+            }
+              }
+
+
+
 
             model_report: dict = evaluate_models(
-                X_train=X_train, y_train=y_train, X_test=X_test, y_test=y_test, models=models
+                X_train=X_train, y_train=y_train, X_test=X_test, y_test=y_test, models=models,params=params
             )
 
             best_model_score = max(sorted(model_report.values()))
